@@ -1,0 +1,21 @@
+{
+  "name": "حساب حضرات",
+  "short_name": "حساب حضرات",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#faf7fd",
+  "theme_color": "#873cff",
+  "description": "حسابِ امروز، خیالِ فردا",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "fa",
+  "dir": "rtl"
+}
