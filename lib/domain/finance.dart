@@ -30,11 +30,62 @@ String persian(Object value) => '$value'.replaceAllMapped(
   (m) => '۰۱۲۳۴۵۶۷۸۹'[int.parse(m[0]!)],
 );
 String normal(String s) => latin(s).replaceAll(RegExp(r'[\s‌ـ]'), '');
-double? parseMoney(String text) {
-  final s = latin(text).replaceAll(RegExp(r'[,٬\s]'), '').replaceAll('٫', '.');
+String cleanExpression(String text) => latin(text)
+    .replaceAll(RegExp(r'[,٬\s]'), '')
+    .replaceAll('٫', '.')
+    .replaceAll('−', '-')
+    .replaceFirst(RegExp(r'^='), '');
+List<RegExpMatch>? expressionTerms(String text) {
+  final s = cleanExpression(text);
   if (s.isEmpty) return null;
-  final n = double.tryParse(s);
-  return n != null && n.isFinite ? n : null;
+  final terms = RegExp(
+    r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)',
+  ).allMatches(s).toList();
+  if (terms.isEmpty || terms.map((m) => m[0]).join() != s) return null;
+  if (terms
+      .skip(1)
+      .any((m) => !m[0]!.startsWith('+') && !m[0]!.startsWith('-'))) {
+    return null;
+  }
+  return terms;
+}
+
+double? parseMoney(String text) {
+  final terms = expressionTerms(text);
+  if (terms == null) return null;
+  var value = 0.0;
+  for (final term in terms) {
+    final n = double.tryParse(term[0]!);
+    if (n == null || !n.isFinite) return null;
+    value += n;
+  }
+  return value.isFinite ? value : null;
+}
+
+String? scaleExpression(String expression, double factor) {
+  final terms = expressionTerms(expression);
+  if (terms == null) return null;
+  return terms.map((term) {
+    final token = term[0]!;
+    final sign = token.startsWith('-')
+        ? '-'
+        : token.startsWith('+')
+        ? '+'
+        : '';
+    final n = double.parse(token).abs() * factor;
+    final number = n.toStringAsFixed(9).replaceFirst(RegExp(r'\.?0+$'), '');
+    return '$sign${number.isEmpty ? '0' : number}';
+  }).join();
+}
+
+String? savedExpression(String input, {bool preserveFormula = false}) {
+  if (parseMoney(input) == null) return null;
+  final s = cleanExpression(input);
+  return preserveFormula ||
+          s.substring(1).contains(RegExp(r'[+-]')) ||
+          input.trim().startsWith('=')
+      ? s
+      : null;
 }
 
 String money(num? value, {bool compact = false}) {
@@ -110,6 +161,7 @@ class Entry {
   int? day;
   bool done, repeat;
   String? repeatEnd, origin, purchaseId, provider;
+  String? expectedExpression, actualExpression;
   Review review;
   bool carryProvisional, carryManual;
   Entry({
@@ -122,6 +174,8 @@ class Entry {
     this.day,
     this.done = false,
     this.repeat = false,
+    this.expectedExpression,
+    this.actualExpression,
     this.repeatEnd,
     this.origin,
     this.purchaseId,
@@ -143,6 +197,8 @@ class Entry {
     'title': title,
     'expected': expected,
     'actual': actual,
+    'expectedExpression': expectedExpression,
+    'actualExpression': actualExpression,
     'day': day,
     'done': done,
     'repeat': repeat,
@@ -161,6 +217,8 @@ class Entry {
     title: j['title'],
     expected: (j['expected'] as num).toDouble(),
     actual: (j['actual'] as num?)?.toDouble(),
+    expectedExpression: j['expectedExpression'],
+    actualExpression: j['actualExpression'],
     day: j['day'],
     done: j['done'] ?? false,
     repeat: j['repeat'] ?? false,
@@ -236,6 +294,7 @@ Entry? recurringOccurrence(Entry source, String target) {
     ..origin = source.origin ?? source.id
     ..month = target
     ..actual = null
+    ..actualExpression = null
     ..done = false
     ..review = Review.planned;
 }
@@ -305,3 +364,8 @@ List<Json> installmentSummaries(Iterable<Entry> entries) {
   return groups.values.toList()
     ..sort((a, b) => (a['month'] as String).compareTo(b['month']));
 }
+
+List<Entry> openFirst(Iterable<Entry> entries) => [
+  ...entries.where((e) => !e.done),
+  ...entries.where((e) => e.done),
+];

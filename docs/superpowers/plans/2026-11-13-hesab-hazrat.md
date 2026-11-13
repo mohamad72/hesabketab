@@ -35,3 +35,5 @@
 - Ruling: provider totals are rendered in a dedicated generated workbook tab with individual linked fixed-expense rows, retaining old unallocated aggregates rather than guessing purchase attribution.
 - Ruling: forecast displays current baseline and projected line; no invented daily historical balance without transaction history.
 - Real OAuth and original workbook writes require on-device configuration; no development writes to the original workbook.
+
+- User revisions: create month at top; inline single/installment choice; all installments stay in selected section; safe plus/minus expressions preserved with per-operand unit conversion; explicitly oriented RTL arrows; shared pastel secondary-button theme; expanded private-config gitignore.

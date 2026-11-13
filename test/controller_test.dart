@@ -67,7 +67,7 @@ void main() {
         firstActual: 30,
       );
       expect(c.entriesFor('1405-08').single.kind, Kind.special);
-      expect(c.entriesFor('1405-09').single.kind, Kind.fixed);
+      expect(c.entriesFor('1405-09').single.kind, Kind.special);
       expect(c.providers, ['نام تازه']);
       await c.createMonth('1405-09');
       await c.createMonth('1405-09');

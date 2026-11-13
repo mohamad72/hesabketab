@@ -53,3 +53,19 @@ app.*.map.json
 android/key.properties
 finance-v1.json*
 .superpowers/
+
+# Personal account/OAuth configuration (device-only)
+.env
+.env.*
+!.env.example
+**/google-services.json
+**/client_secret*.json
+**/credentials*.json
+**/service-account*.json
+**/secrets*.json
+**/tokens.json
+**/account*.local.json
+/local-config*.json
+/private/
+*.p12
+*.pem

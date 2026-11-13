@@ -146,6 +146,12 @@ class SheetCodec {
             )['userEnteredValue']?['formulaValue'];
             if (f != null) formulas[field.key] = f;
           }
+          e.expectedExpression = formulas['expected'] == null
+              ? null
+              : scaleExpression(formulas['expected']!, factor);
+          e.actualExpression = formulas['actual'] == null
+              ? null
+              : scaleExpression(formulas['actual']!, factor);
           parsed.bindings[id] = {
             'sheetId': sheetId,
             'row': end,

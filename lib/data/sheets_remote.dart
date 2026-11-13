@@ -460,21 +460,41 @@ class SheetsRemote {
         for (final field in ['expected', 'actual', 'done']) {
           final target = b[field] as int?;
           if (target == null) continue;
-          if (old != null && !moved && same(e[field], old[field])) continue;
+          if (old != null &&
+              !moved &&
+              same(e[field], old[field]) &&
+              same(e['${field}Expression'], old['${field}Expression'])) {
+            continue;
+          }
           if ((b['formulas'] as Map?)?.containsKey(field) == true) {
             if (entry.isDaily && field == 'actual') continue;
-            throw Exception(
-              '«${entry.title}» در $field فرمول دارد؛ فرمول را در شیت ویرایش کنید.',
+            if (scaleExpression(b['formulas'][field], 1) == null) {
+              throw Exception(
+                '«${entry.title}» فرمول ارجاعی دارد؛ فرمول را در شیت ویرایش کنید.',
+              );
+            }
+          }
+          final expression = e['${field}Expression'] as String?;
+          if (expression != null &&
+              scaleExpression(expression, 1 / factor) != null) {
+            requests.add(
+              formula(
+                sid,
+                row,
+                target,
+                '=${scaleExpression(expression, 1 / factor)}',
+              ),
+            );
+          } else {
+            requests.add(
+              update(
+                sid,
+                row,
+                target,
+                e[field] is num ? (e[field] as num) / factor : e[field],
+              ),
             );
           }
-          requests.add(
-            update(
-              sid,
-              row,
-              target,
-              e[field] is num ? (e[field] as num) / factor : e[field],
-            ),
-          );
         }
         if (old == null || moved || !same(e['review'], old['review'])) {
           final failed = e['review'] == 'failed';

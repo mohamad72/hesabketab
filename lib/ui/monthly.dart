@@ -3,7 +3,6 @@ import '../data/controller.dart';
 import '../domain/finance.dart';
 import 'theme.dart';
 import 'entry_form.dart';
-import 'purchase_form.dart';
 import 'reports.dart';
 
 class MonthlyPage extends StatefulWidget {
@@ -19,7 +18,7 @@ class _MonthlyPageState extends State<MonthlyPage> {
   @override
   Widget build(BuildContext context) {
     final s = c.summary,
-        rows = c.entries.where((e) => e.kind == selected).toList(),
+        rows = openFirst(c.entries.where((e) => e.kind == selected)),
         summary = FinancialSummary(rows);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -263,6 +262,8 @@ class _MonthlyPageState extends State<MonthlyPage> {
                     showForm(context, EntryForm(controller: c, entry: e)),
                 borderRadius: BorderRadius.circular(20),
                 child: Panel(
+                  key: ValueKey('entry-${e.id}'),
+                  color: e.done ? const Color(0xfff2eef7) : null,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
@@ -295,12 +296,18 @@ class _MonthlyPageState extends State<MonthlyPage> {
                                       ),
                                       child: Text(
                                         e.title,
-                                        style: const TextStyle(
+                                        style: TextStyle(
+                                          color: e.done ? muted : ink,
                                           fontWeight: FontWeight.w700,
                                           fontSize: 14,
                                         ),
                                       ),
                                     ),
+                                    if (e.done)
+                                      const Tag(
+                                        'تمام شد',
+                                        color: Color(0xffe7dff1),
+                                      ),
                                     if (e.repeat)
                                       const Icon(
                                         Icons.repeat_rounded,
@@ -380,30 +387,6 @@ class _MonthlyPageState extends State<MonthlyPage> {
               showForm(context, EntryForm(controller: c, kind: selected)),
         ),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.all(15),
-            side: const BorderSide(color: lavender),
-          ),
-          onPressed: () => showForm(context, PurchaseForm(controller: c)),
-          icon: const Icon(Icons.shopping_bag_outlined, size: 18),
-          label: const Text('ثبت خرید قسطی'),
-        ),
-        const SizedBox(height: 12),
-        TextButton.icon(
-          onPressed: () async {
-            final m = await pickMonth(context, Month.key(c.selectedMonth).next);
-            if (m != null && context.mounted) {
-              await runAction(
-                context,
-                () => c.createMonth(m.key),
-                success: 'ماه جدید روی دستگاه آماده شد.',
-              );
-            }
-          },
-          icon: const Icon(Icons.add_circle_outline),
-          label: const Text('ساخت ماه جدید'),
-        ),
       ],
     );
   }

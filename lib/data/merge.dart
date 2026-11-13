@@ -41,21 +41,40 @@ MergeResult mergeDocuments(
       continue;
     }
     final merged = <String, dynamic>{};
+    bool monetary(String field) =>
+        ['expected', 'actual'].contains(field) &&
+        [b, l, r].any((m) => m?.containsKey('${field}Expression') == true);
     for (final field in {...?b?.keys, ...l.keys, ...r.keys}) {
-      final bv = b?[field], lv = l[field], rv = r[field];
+      if (field.endsWith('Expression') &&
+          monetary(field.replaceFirst('Expression', ''))) {
+        continue;
+      }
+      final money = monetary(field);
+      dynamic read(Json? m) => money
+          ? {'value': m?[field], 'expression': m?['${field}Expression']}
+          : m?[field];
+      final bv = read(b), lv = read(l), rv = read(r);
+      dynamic chosen;
       if (same(lv, rv) || same(rv, bv)) {
-        merged[field] = lv;
+        chosen = lv;
       } else if (same(lv, bv)) {
-        merged[field] = rv;
+        chosen = rv;
       } else {
-        merged[field] = lv;
+        chosen = lv;
         conflicts.add({
           'id': id,
           'field': field,
+          if (money) 'money': true,
           'base': bv,
           'local': lv,
           'remote': rv,
         });
+      }
+      if (money) {
+        merged[field] = chosen['value'];
+        merged['${field}Expression'] = chosen['expression'];
+      } else {
+        merged[field] = chosen;
       }
     }
     result[id] = merged;

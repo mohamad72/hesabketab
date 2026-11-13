@@ -26,6 +26,21 @@ ThemeData appTheme() => ThemeData(
     ),
   ),
   dividerColor: lavender,
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      backgroundColor: lavender,
+      foregroundColor: purple,
+      side: const BorderSide(color: Colors.white, width: 1.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      minimumSize: const Size(0, 52),
+      textStyle: const TextStyle(
+        fontFamily: 'Vazirmatn',
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: const Color(0xfffcfaff),

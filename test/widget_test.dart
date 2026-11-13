@@ -95,4 +95,64 @@ void main() {
       });
     }
   });
+  testWidgets(
+    'month creation is at top and installments are chosen inside add expense',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        HesabApp(controller: demoController(), demo: true),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('ساخت ماه جدید')).dy, lessThan(230));
+      expect(find.text('ثبت خرید قسطی'), findsNothing);
+      final previous = find.byTooltip('ماه قبل');
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(of: previous, matching: find.byType(Icon)),
+            )
+            .textDirection,
+        TextDirection.ltr,
+      );
+      await tester.ensureVisible(find.text('افزودن'));
+      await tester.tap(find.text('افزودن'));
+      await tester.pumpAndSettle();
+      expect(find.text('یک‌جا'), findsOneWidget);
+      await tester.tap(find.text('قسطی'));
+      await tester.pumpAndSettle();
+      expect(find.text('بخش ثبت هر چهار قسط'), findsOneWidget);
+    },
+  );
+  testWidgets('editing title keeps locked reference formulas untouched', (
+    tester,
+  ) async {
+    final c = FinanceController(saveDocument: (_) async {});
+    final e = Entry(
+      id: 'formula',
+      month: c.selectedMonth,
+      kind: Kind.income,
+      title: 'درآمد',
+      expected: 100,
+    );
+    c.bindings[e.id] = {
+      'formulas': {'expected': '=SUM(B1:B4)'},
+    };
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: EntryForm(controller: c, entry: e),
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextFormField).first, 'درآمد اصلاح‌شده');
+    await tester.ensureVisible(find.text('ذخیرهٔ تغییرات'));
+    await tester.tap(find.text('ذخیرهٔ تغییرات'));
+    await tester.pumpAndSettle();
+    expect(c.entries.single.expectedExpression, null);
+    expect(c.entries.single.expected, 100);
+  });
 }

@@ -273,6 +273,7 @@ class FinanceController extends ChangeNotifier {
         ..id = id
         ..month = month
         ..actual = null
+        ..actualExpression = null
         ..done = false
         ..review = Review.planned;
       entities.putIfAbsent(id, () => {...moved.toJson(), 'type': 'entry'});
@@ -301,7 +302,7 @@ class FinanceController extends ChangeNotifier {
       final e = Entry(
         id: '${id}_$i',
         month: month,
-        kind: i == 0 ? kind : Kind.fixed,
+        kind: kind,
         title: i == 0 ? title : '$provider · $title · قسط ${persian(i + 1)}',
         expected: (p['amount'] as num).toDouble(),
         actual: i == 0 ? firstActual : null,
@@ -322,6 +323,9 @@ class FinanceController extends ChangeNotifier {
       } else {
         entities[id] = Map<String, dynamic>.from(value);
       }
+    } else if (conflict['money'] == true) {
+      entities[id]?[field] = value['value'];
+      entities[id]?['${field}Expression'] = value['expression'];
     } else {
       entities[id]?[field] = value;
     }
@@ -333,6 +337,10 @@ class FinanceController extends ChangeNotifier {
       } else {
         base[id] = Map<String, dynamic>.from(conflict['remote']);
       }
+    } else if (conflict['money'] == true) {
+      final record = base.putIfAbsent(id, () => {});
+      record[field] = conflict['remote']['value'];
+      record['${field}Expression'] = conflict['remote']['expression'];
     } else {
       base.putIfAbsent(id, () => {})[field] = conflict['remote'];
     }

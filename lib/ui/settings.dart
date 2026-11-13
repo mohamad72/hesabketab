@@ -284,7 +284,10 @@ class SettingsPage extends StatelessWidget {
         r'$record': 'حذف یا ویرایش',
       }[field] ??
       field;
-  String _display(dynamic value) => value == null
+  String _display(dynamic value) =>
+      value is Map && value.containsKey('expression')
+      ? '${money(value['value'])}${value['expression'] == null ? '' : ' ← ${value['expression']}'}'
+      : value == null
       ? 'خالی / حذف‌شده'
       : value is num
       ? money(value)

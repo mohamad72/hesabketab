@@ -244,6 +244,7 @@ class _AppShellState extends State<AppShell> {
                                           ),
                                           icon: const Icon(
                                             Icons.chevron_right,
+                                            textDirection: TextDirection.ltr,
                                             color: muted,
                                           ),
                                         ),
@@ -260,6 +261,7 @@ class _AppShellState extends State<AppShell> {
                                           ),
                                           icon: const Icon(
                                             Icons.chevron_left,
+                                            textDirection: TextDirection.ltr,
                                             color: muted,
                                           ),
                                         ),
@@ -278,6 +280,30 @@ class _AppShellState extends State<AppShell> {
                               ],
                             ],
                           ),
+                          if (page == 0)
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton.icon(
+                                onPressed: () async {
+                                  final month = await pickMonth(
+                                    context,
+                                    Month.key(c.selectedMonth).next,
+                                  );
+                                  if (month != null && context.mounted) {
+                                    await runAction(
+                                      context,
+                                      () => c.createMonth(month.key),
+                                      success: 'ماه جدید روی دستگاه آماده شد.',
+                                    );
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 18,
+                                ),
+                                label: const Text('ساخت ماه جدید'),
+                              ),
+                            ),
                           if (widget.demo)
                             const Padding(
                               padding: EdgeInsets.only(top: 12),

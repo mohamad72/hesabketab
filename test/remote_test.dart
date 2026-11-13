@@ -140,4 +140,68 @@ void main() {
       );
     },
   );
+  test(
+    'editable arithmetic formula can be cleared or replaced with correct sheet units',
+    () async {
+      List<dynamic> requests = [];
+      final remote = SheetsRemote(
+        client: MockClient((req) async {
+          requests = jsonDecode(req.body)['requests'];
+          return http.Response('{}', 200);
+        }),
+      );
+      final entry = Entry(
+        id: 'x',
+        month: '1405-08',
+        kind: Kind.income,
+        title: 'درآمد',
+        expected: 100,
+        actual: 12,
+        actualExpression: '10+2',
+      );
+      final snapshot = RemoteSnapshot()
+        ..sheets = [
+          {
+            'properties': {'sheetId': 1, 'title': 'آبان 1405'},
+          },
+        ]
+        ..names = [
+          {'name': 'hh_x'},
+        ]
+        ..entities = {
+          'x': {...entry.toJson(), 'type': 'entry'},
+        }
+        ..bindings = {
+          'x': {
+            'sheetId': 1,
+            'row': 2,
+            'col': 0,
+            'expected': 1,
+            'actual': 2,
+            'formulas': {'actual': '=0.01+0.002'},
+          },
+        };
+      final cleared = entry.copy()
+        ..actual = null
+        ..actualExpression = null;
+      await remote.write({
+        'x': {...cleared.toJson(), 'type': 'entry'},
+      }, snapshot);
+      Map actualUpdate() => requests
+          .where(
+            (r) =>
+                r['updateCells']?['range']?['startRowIndex'] == 2 &&
+                r['updateCells']?['range']?['startColumnIndex'] == 2,
+          )
+          .single['updateCells']['rows'][0]['values'][0];
+      expect(actualUpdate(), isEmpty);
+      final replacement = entry.copy()
+        ..actual = 50000
+        ..actualExpression = '40000+10000';
+      await remote.write({
+        'x': {...replacement.toJson(), 'type': 'entry'},
+      }, snapshot);
+      expect(actualUpdate()['userEnteredValue']['formulaValue'], '=40+10');
+    },
+  );
 }

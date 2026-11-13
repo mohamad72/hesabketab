@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 import '../data/controller.dart';
 import '../domain/finance.dart';
 import 'theme.dart';
+import 'entry_form.dart' show PaymentChoice;
 
 class PurchaseForm extends StatefulWidget {
   final FinanceController controller;
-  const PurchaseForm({super.key, required this.controller});
+  final Kind initialKind;
+  final VoidCallback? onSingle;
+  const PurchaseForm({
+    super.key,
+    required this.controller,
+    this.initialKind = Kind.special,
+    this.onSingle,
+  });
   @override
   State<PurchaseForm> createState() => _PurchaseFormState();
 }
@@ -24,6 +32,7 @@ class _PurchaseFormState extends State<PurchaseForm> {
   @override
   void initState() {
     super.initState();
+    kind = widget.initialKind;
     var m = Month.key(widget.controller.selectedMonth);
     months = List.generate(4, (_) {
       final key = m.key;
@@ -66,6 +75,12 @@ class _PurchaseFormState extends State<PurchaseForm> {
             'یک خرید، چهار سررسید روشن',
             style: TextStyle(color: muted),
           ),
+          const SizedBox(height: 16),
+          if (widget.onSingle != null)
+            PaymentChoice(
+              installment: true,
+              onChanged: (_) => widget.onSingle!(),
+            ),
           const SizedBox(height: 24),
           TextFormField(
             controller: title,
@@ -114,7 +129,7 @@ class _PurchaseFormState extends State<PurchaseForm> {
           ),
           DropdownButtonFormField<Kind>(
             initialValue: kind,
-            decoration: const InputDecoration(labelText: 'محل ثبت قسط اول'),
+            decoration: const InputDecoration(labelText: 'بخش ثبت هر چهار قسط'),
             items: [Kind.fixed, Kind.special, Kind.saving]
                 .map((k) => DropdownMenuItem(value: k, child: Text(k.label)))
                 .toList(),
@@ -141,7 +156,7 @@ class _PurchaseFormState extends State<PurchaseForm> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         const Spacer(),
-                        Tag(i == 0 ? 'زیر خود کالا' : 'هزینه‌های ثابت'),
+                        Tag(kind.label),
                       ],
                     ),
                     const SizedBox(height: 12),
