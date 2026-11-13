@@ -176,20 +176,6 @@ class _AppShellState extends State<AppShell> {
                                     fontSize: 13,
                                   ),
                                 ),
-                              const Spacer(),
-                              IconButton(
-                                tooltip: 'وضعیت همگام‌سازی',
-                                onPressed: () => setState(() => page = 3),
-                                icon: Badge(
-                                  isLabelVisible: c.pending > 0,
-                                  label: Text(persian(c.pending)),
-                                  backgroundColor: pink,
-                                  child: const Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: ink,
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 20),
